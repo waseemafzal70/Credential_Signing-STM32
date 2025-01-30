@@ -61,7 +61,7 @@ main-build: Credential\ signing.elf secondary-outputs
 
 # Tool invocations
 Credential\ signing.elf Credential\ signing.map: $(OBJS) $(USER_OBJS) C:\Users\afzal\STM32CubeIDE\workspace_1.16.1\Credential\ signing\STM32F401RETX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
-	arm-none-eabi-gcc -o "Credential signing.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m4 -T"C:\Users\afzal\STM32CubeIDE\workspace_1.16.1\Credential signing\STM32F401RETX_FLASH.ld" --specs=nosys.specs -Wl,-Map="Credential signing.map" -Wl,--gc-sections -static -L"D:\STM32CubeExpansion_Crypto_V4.1.0\Middlewares\ST\STM32_Cryptographic\lib" --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+	arm-none-eabi-gcc -o "Credential signing.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m4 -T"C:\Users\afzal\STM32CubeIDE\workspace_1.16.1\Credential signing\STM32F401RETX_FLASH.ld" --specs=nosys.specs -Wl,-Map="Credential signing.map" -Wl,--gc-sections -static -L"D:\STM32CubeExpansion_Crypto_V4.1.0\Middlewares\ST\STM32_Cryptographic\lib" --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -u _printf_float -u _scanf_float -Wl,--start-group -lc -lm -Wl,--end-group
 	@echo 'Finished building target: $@'
 	@echo ' '
 
