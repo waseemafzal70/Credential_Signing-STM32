@@ -2,6 +2,7 @@
 #include <string.h>
 #include "main.h"
 #include "cmox_crypto.h"
+#include "monocypher.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
@@ -197,6 +198,7 @@ static void MX_GPIO_Init(void);
 static void MX_RTC_Init(void);
 static void MX_USART2_UART_Init(void);
 static void MX_CRC_Init(void);
+void print_pk_sk(uint8_t *public_key_to_print, uint8_t *secret_key_to_print);
 void print_execution_time(uint32_t start_time, uint32_t end_time);
 void perform_computation(void);
 void Error_Handler(void);
@@ -241,6 +243,12 @@ const uint8_t Known_Random[] = {
     0x73, 0xe9, 0x14, 0x03, 0x36, 0xfc, 0xfb, 0x1e, 0x12, 0x28, 0x92, 0xee, 0x1d, 0x50, 0x1b, 0xdb
 };
 
+
+const uint8_t your_sk[] = {
+    0x58, 0xf7, 0x41, 0x77, 0x16, 0x20, 0xbd, 0xc4, 0x28, 0xe9, 0x1a, 0x32, 0xd8, 0x6d, 0x23, 0x08,
+    0x73, 0xe9, 0x14, 0x03, 0x36, 0xfc, 0xfb, 0x1e, 0x12, 0x28, 0x92, 0xee, 0x1d, 0x50, 0x1b, 0xdb
+};
+
 //const uint8_t Known_Signature[] = {
 //    0x4a, 0x19, 0x27, 0x44, 0x29, 0xe4, 0x05, 0x22, 0x23, 0x4b, 0x87, 0x85, 0xdc, 0x25, 0xfc, 0x52,
 //    0x4f, 0x17, 0x9d, 0xcc, 0x95, 0xff, 0x09, 0xb3, 0xc9, 0x77, 0x0f, 0xc7, 0x1f, 0x54, 0xca, 0x0d,
@@ -255,6 +263,19 @@ uint8_t Computed_Signature[CMOX_ECC_SECP256R1_SIG_LEN];  // Computed signature b
 
 int main(void)
 {
+
+	/* Allocate memory for the public key */
+	uint8_t       your_pk      [32];
+	/* Compute the public key asscoiated with your_sk */
+	crypto_x25519_public_key(your_pk, your_sk);
+
+
+
+	/* You can also convert the x25519 key to Ed25519 */
+	uint8_t pk_for_eddsa [32];
+    crypto_eddsa_to_x25519(pk_for_eddsa, your_pk);
+
+
     cmox_hash_retval_t hretval;
     cmox_ecc_retval_t retval;
     size_t computed_size;
@@ -267,6 +288,9 @@ int main(void)
     MX_USART2_UART_Init();     // UART initialization
     MX_CRC_Init();             // CRC initialization
     print_time();
+
+    /* Print the generated keys */
+	print_sk_pk(your_pk, your_sk);
 
     uint32_t start_time = 0;
 
@@ -299,6 +323,7 @@ int main(void)
 	        UART_Print("Key generation failed");
 	        return -1;
 	    }
+
 
 //	    UART_Print("Private key: ");
 //	    Print_Computed_Keys(privKey, privKeyLen);
@@ -542,6 +567,32 @@ int main(void)
     while (1) {
         // Infinite loop
     }
+}
+
+void print_sk_pk(uint8_t *public_key_to_print, uint8_t *secret_key_to_print) {
+
+    char buffer[100];
+    int offset = 0;
+
+    offset += snprintf(buffer + offset, sizeof(buffer) - offset, "Your Public Key: ");
+    for (int i = 0; i < 32; i++) {
+    	offset += snprintf(buffer + offset, sizeof(buffer) - offset, "%02X", public_key_to_print[i]);
+    }
+    offset += snprintf(buffer + offset, sizeof(buffer) - offset, "\r\n");
+
+    HAL_UART_Transmit(&huart2, (uint8_t *)buffer, offset, HAL_MAX_DELAY);
+
+    memset(buffer, 0, sizeof(buffer));
+    offset = 0;
+
+
+    offset += snprintf(buffer + offset, sizeof(buffer) - offset, "Your Private Key: ");
+    for (int i = 0; i < 32; i++) {
+    	offset += snprintf(buffer + offset, sizeof(buffer) - offset, "%02X", secret_key_to_print[i]);
+    }
+    offset += snprintf(buffer + offset, sizeof(buffer) - offset, "\r\n");
+
+    HAL_UART_Transmit(&huart2, (uint8_t *)buffer, offset, HAL_MAX_DELAY);
 }
 
 void print_execution_time(uint32_t start_time, uint32_t end_time)
